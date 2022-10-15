@@ -1,5 +1,6 @@
 AlignAfterOpenBracket: true
 AlignConsecutiveAssignments: false
+AlignConsecutiveMacros: true
 AlignOperands: true
 AlignTrailingComments: true
 AllowShortCaseLabelsOnASingleLine: false
