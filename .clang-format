@@ -1,0 +1,20 @@
+AlignAfterOpenBracket: true
+AlignConsecutiveAssignments: false
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AlwaysBreakAfterReturnType: AllDefinitions
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Linux
+IncludeBlocks: Regroup
+ReflowComments: true
+SortIncludes: false
+UseTab: ForIndentation
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 80
+
+NamespaceIndentation: All
