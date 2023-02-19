@@ -174,6 +174,42 @@ esp_err_t icm20948_set_gyro_fs(icm20948_handle_t sensor, icm20948_gyro_fs_t gyro
 esp_err_t icm20948_get_gyro_fs(icm20948_handle_t sensor, icm20948_gyro_fs_t *gyro_fs);
 
 /**
+ * @brief Get gyroscope sensitivity
+ *
+ * @param sensor object handle of icm20948
+ * @param gyro_sensitivity gyroscope sensitivity
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_get_gyro_sensitivity(icm20948_handle_t sensor, float *const gyro_sensitivity);
+
+/**
+ * @brief Read gyro values
+ *
+ * @param sensor object handle of icm20948
+ * @param gyro_value gyroscope measurements
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_get_gyro(icm20948_handle_t sensor, icm20948_gyro_value_t *const gyro_value);
+
+/**
+ * @brief Read raw gyroscope measurements
+ *
+ * @param sensor object handle of icm20948
+ * @param raw_gyro_value raw gyroscope measurements
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_get_raw_gyro(icm20948_handle_t sensor, icm20948_raw_gyro_value_t *const raw_gyro_value);
+
+/**
  * @brief Set accelerometer full scale range
  *
  * @param sensor object handle of icm20948

@@ -4,10 +4,10 @@
 #include "driver/i2c.h"
 #include "icm20948.h"
 
-#define I2C_MASTER_SCL_IO 22      /*!< gpio number for I2C master clock */
-#define I2C_MASTER_SDA_IO 21      /*!< gpio number for I2C master data  */
-#define I2C_MASTER_NUM I2C_NUM_0  /*!< I2C port number for master dev */
-#define I2C_MASTER_FREQ_HZ 100000 /*!< I2C master clock frequency */
+#define I2C_MASTER_SCL_IO  22        /*!< gpio number for I2C master clock */
+#define I2C_MASTER_SDA_IO  21        /*!< gpio number for I2C master data  */
+#define I2C_MASTER_NUM     I2C_NUM_0 /*!< I2C port number for master dev */
+#define I2C_MASTER_FREQ_HZ 100000    /*!< I2C master clock frequency */
 
 static const char *TAG = "icm test";
 static icm20948_handle_t icm20948 = NULL;
@@ -91,12 +91,21 @@ app_main(void)
 	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
 	ESP_LOGI(TAG, "%lf", accel_sens);
 
+	float gyro_sens;
+	ret = icm20948_get_gyro_sensitivity(icm20948, &gyro_sens);
+	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
+	ESP_LOGI(TAG, "%lf", gyro_sens);
+
 	icm20948_acce_value_t acce;
+	icm20948_gyro_value_t gyro;
 
 	for (size_t i = 0; i < 10; ++i) {
 		ret = icm20948_get_acce(icm20948, &acce);
+		ret = icm20948_get_gyro(icm20948, &gyro);
 		ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
 		ESP_LOGI(TAG, "%lf %lf %lf", acce.acce_x, acce.acce_y, acce.acce_z);
+		ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
+		ESP_LOGI(TAG, "%lf %lf %lf", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
 		vTaskDelay(100 / portTICK_PERIOD_MS);
 	}
 }

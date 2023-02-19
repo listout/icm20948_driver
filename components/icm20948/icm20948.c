@@ -229,6 +229,79 @@ icm20948_get_gyro_fs(icm20948_handle_t sensor, icm20948_gyro_fs_t *gyro_fs)
 }
 
 esp_err_t
+icm20948_get_gyro_sensitivity(icm20948_handle_t sensor, float *const gyro_sensitivity)
+{
+	esp_err_t ret;
+	icm20948_gyro_fs_t gyro_fs;
+	ret = icm20948_get_gyro_fs(sensor, &gyro_fs);
+	if (ret != ESP_OK)
+		return ret;
+
+	switch (gyro_fs) {
+	case GYRO_FS_250DPS:
+		*gyro_sensitivity = 131;
+		break;
+
+	case GYRO_FS_500DPS:
+		*gyro_sensitivity = 65.5;
+		break;
+
+	case GYRO_FS_1000DPS:
+		*gyro_sensitivity = 32.8;
+		break;
+
+	case GYRO_FS_2000DPS:
+		*gyro_sensitivity = 16.4;
+		break;
+
+	default:
+		break;
+	}
+	return ret;
+}
+
+esp_err_t
+icm20948_get_raw_gyro(icm20948_handle_t sensor, icm20948_raw_gyro_value_t *const raw_gyro_value)
+{
+	uint8_t data_rd[6];
+	esp_err_t ret = icm20948_read(sensor, ICM20948_GYRO_XOUT_H, data_rd, sizeof(data_rd));
+
+	raw_gyro_value->raw_gyro_x = (int16_t)((data_rd[0] << 8) + (data_rd[1]));
+	raw_gyro_value->raw_gyro_y = (int16_t)((data_rd[2] << 8) + (data_rd[3]));
+	raw_gyro_value->raw_gyro_z = (int16_t)((data_rd[4] << 8) + (data_rd[5]));
+
+	return ret;
+}
+
+esp_err_t
+icm20948_get_gyro(icm20948_handle_t sensor, icm20948_gyro_value_t *const gyro_value)
+{
+	esp_err_t ret;
+	float gyro_sensitivity;
+	icm20948_raw_gyro_value_t raw_gyro;
+
+	ret = icm20948_get_gyro_sensitivity(sensor, &gyro_sensitivity);
+	if (ret != ESP_OK) {
+		return ret;
+	}
+
+	ret = icm20948_set_bank(sensor, 0);
+	if (ret != ESP_OK) {
+		return ret;
+	}
+
+	ret = icm20948_get_raw_gyro(sensor, &raw_gyro);
+	if (ret != ESP_OK) {
+		return ret;
+	}
+
+	gyro_value->gyro_x = raw_gyro.raw_gyro_x / gyro_sensitivity;
+	gyro_value->gyro_y = raw_gyro.raw_gyro_y / gyro_sensitivity;
+	gyro_value->gyro_z = raw_gyro.raw_gyro_z / gyro_sensitivity;
+	return ESP_OK;
+}
+
+esp_err_t
 icm20948_set_acce_fs(icm20948_handle_t sensor, icm20948_acce_fs_t acce_fs)
 {
 	esp_err_t ret;
