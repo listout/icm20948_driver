@@ -16,6 +16,6 @@ SortIncludes: false
 UseTab: ForIndentation
 IndentWidth: 4
 TabWidth: 4
-ColumnLimit: 80
+ColumnLimit: 120
 
 NamespaceIndentation: All
