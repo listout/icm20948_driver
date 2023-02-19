@@ -5,9 +5,8 @@
 #include "driver/gpio.h"
 
 #define ICM20948_I2C_ADDRESS 0x69
-/*
- *#define ICM20948_I2C_ADDRESS 0x68
- */
+#define ICM20948_I2C_ADDRESS_1 0x68
+#define ICM20948_WHO_AM_I_VAL 0xEA
 
 typedef enum {
 	ACCE_FS_2G = 0,  /*!< Accelerometer full scale range is +/- 2g */
