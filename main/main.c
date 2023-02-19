@@ -34,6 +34,80 @@ i2c_bus_init(void)
 	return i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
 }
 
+static esp_err_t
+icm20948_configure(icm20948_acce_fs_t acce_fs, icm20948_gyro_fs_t gyro_fs)
+{
+	esp_err_t ret;
+
+	/*
+	 * One might need to change ICM20948_I2C_ADDRESS to ICM20948_I2C_ADDRESS_1
+	 * if address pin pulled low (to GND)
+	 */
+	icm20948 = icm20948_create(I2C_MASTER_NUM, ICM20948_I2C_ADDRESS);
+	if (icm20948 == NULL) {
+		ESP_LOGE(TAG, "ICM20948 create returned NULL!");
+		return ESP_FAIL;
+	}
+	ESP_LOGI(TAG, "ICM20948 creation successfull!");
+
+	ret = icm20948_reset(icm20948);
+	if (ret != ESP_OK)
+		return ret;
+
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+
+	ret = icm20948_wake_up(icm20948);
+	if (ret != ESP_OK)
+		return ret;
+
+	ret = icm20948_set_bank(icm20948, 0);
+	if (ret != ESP_OK)
+		return ret;
+
+	uint8_t device_id;
+	ret = icm20948_get_deviceid(icm20948, &device_id);
+	if (ret != ESP_OK)
+		return ret;
+	ESP_LOGI(TAG, "0x%02X", device_id);
+	if (device_id != ICM20948_WHO_AM_I_VAL)
+		return ESP_FAIL;
+
+	ret = icm20948_set_gyro_fs(icm20948, gyro_fs);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	ret = icm20948_set_acce_fs(icm20948, acce_fs);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	return ret;
+}
+
+void
+icm_read_task(void *args)
+{
+	esp_err_t ret = icm20948_configure(ACCE_FS_2G, GYRO_FS_1000DPS);
+	if (ret != ESP_OK) {
+		ESP_LOGE(TAG, "ICM configuration failure");
+		vTaskDelete(NULL);
+	}
+	ESP_LOGI(TAG, "ICM20948 configuration successfull!");
+
+	icm20948_acce_value_t acce;
+	icm20948_gyro_value_t gyro;
+	for (int i = 0; i < 100; ++i) {
+		ret = icm20948_get_acce(icm20948, &acce);
+		if (ret == ESP_OK)
+			ESP_LOGI(TAG, "ax: %lf ay: %lf az: %lf", acce.acce_x, acce.acce_y, acce.acce_z);
+		ret = icm20948_get_gyro(icm20948, &gyro);
+		if (ret == ESP_OK)
+			ESP_LOGI(TAG, "gx: %lf gy: %lf gz: %lf", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+	}
+
+	vTaskDelete(NULL);
+}
+
 void
 app_main(void)
 {
@@ -41,71 +115,5 @@ app_main(void)
 	esp_err_t ret = i2c_bus_init();
 	ESP_LOGI(TAG, "I2C bus initialization: %s", esp_err_to_name(ret));
 
-	icm20948 = icm20948_create(I2C_MASTER_NUM, 0x69);
-	if (icm20948 == NULL) {
-		ESP_LOGE(TAG, "ICM20948 create returned NULL!");
-		return;
-	}
-	ESP_LOGI(TAG, "ICM20948 creation successfull!");
-
-	ret = icm20948_reset(icm20948);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	vTaskDelay(10 / portTICK_PERIOD_MS);
-
-	ret = icm20948_wake_up(icm20948);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	ret = icm20948_set_bank(icm20948, 0);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	uint8_t device_id;
-	ret = icm20948_get_deviceid(icm20948, &device_id);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-	ESP_LOGI(TAG, "0x%02X", device_id);
-
-	icm20948_gyro_fs_t fs;
-	ret = icm20948_get_gyro_fs(icm20948, &fs);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	ret = icm20948_set_gyro_fs(icm20948, GYRO_FS_1000DPS);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	ret = icm20948_get_gyro_fs(icm20948, &fs);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-	ESP_LOGI(TAG, "%d", fs);
-
-	icm20948_acce_fs_t as;
-	ret = icm20948_get_acce_fs(icm20948, &as);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	ret = icm20948_set_acce_fs(icm20948, ACCE_FS_4G);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-
-	ret = icm20948_get_acce_fs(icm20948, &as);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-	ESP_LOGI(TAG, "%d", as);
-
-	float accel_sens;
-	ret = icm20948_get_acce_sensitivity(icm20948, &accel_sens);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-	ESP_LOGI(TAG, "%lf", accel_sens);
-
-	float gyro_sens;
-	ret = icm20948_get_gyro_sensitivity(icm20948, &gyro_sens);
-	ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-	ESP_LOGI(TAG, "%lf", gyro_sens);
-
-	icm20948_acce_value_t acce;
-	icm20948_gyro_value_t gyro;
-
-	for (size_t i = 0; i < 10; ++i) {
-		ret = icm20948_get_acce(icm20948, &acce);
-		ret = icm20948_get_gyro(icm20948, &gyro);
-		ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-		ESP_LOGI(TAG, "%lf %lf %lf", acce.acce_x, acce.acce_y, acce.acce_z);
-		ESP_LOGI(TAG, "%s", esp_err_to_name(ret));
-		ESP_LOGI(TAG, "%lf %lf %lf", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-	}
+	xTaskCreate(icm_read_task, "icm read task", 1024 * 10, NULL, 15, NULL);
 }
