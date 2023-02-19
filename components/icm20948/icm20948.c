@@ -419,3 +419,90 @@ icm20948_get_acce(icm20948_handle_t sensor, icm20948_acce_value_t *const acce_va
 	acce_value->acce_z = raw_acce.raw_acce_z / acce_sensitivity;
 	return ESP_OK;
 }
+
+esp_err_t
+icm20948_set_acce_dlpf(icm20948_handle_t sensor, icm20948_dlpf_t dlpf_acce)
+{
+	esp_err_t ret;
+	uint8_t tmp;
+
+	ret = icm20948_set_bank(sensor, 2);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	ret = icm20948_read(sensor, ICM20948_ACCEL_CONFIG, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	tmp &= 0xC7;
+	tmp |= dlpf_acce << 3;
+
+	ret = icm20948_write(sensor, ICM20948_ACCEL_CONFIG, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	return ret;
+}
+
+esp_err_t
+icm20948_set_gyro_dlpf(icm20948_handle_t sensor, icm20948_dlpf_t dlpf_gyro)
+{
+	esp_err_t ret;
+	uint8_t tmp;
+
+	ret = icm20948_set_bank(sensor, 2);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	ret = icm20948_read(sensor, ICM20948_GYRO_CONFIG_1, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	tmp &= 0xC7;
+	tmp |= dlpf_gyro << 3;
+
+	ret = icm20948_write(sensor, ICM20948_GYRO_CONFIG_1, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	return ret;
+}
+
+esp_err_t
+icm20948_enable_dlpf(icm20948_handle_t sensor, bool enable)
+{
+	esp_err_t ret;
+	uint8_t tmp;
+
+	ret = icm20948_set_bank(sensor, 2);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	ret = icm20948_read(sensor, ICM20948_ACCEL_CONFIG, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	if (enable)
+		tmp |= 0x01;
+	else
+		tmp &= 0xFE;
+
+	ret = icm20948_write(sensor, ICM20948_ACCEL_CONFIG, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	ret = icm20948_read(sensor, ICM20948_GYRO_CONFIG_1, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	if (enable)
+		tmp |= 0x01;
+	else
+		tmp &= 0xFE;
+
+	ret = icm20948_write(sensor, ICM20948_GYRO_CONFIG_1, &tmp, 1);
+	if (ret != ESP_OK)
+		return ESP_FAIL;
+
+	return ret;
+}

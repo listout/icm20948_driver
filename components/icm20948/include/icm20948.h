@@ -4,9 +4,9 @@
 #include "driver/i2c.h"
 #include "driver/gpio.h"
 
-#define ICM20948_I2C_ADDRESS 0x69
+#define ICM20948_I2C_ADDRESS   0x69
 #define ICM20948_I2C_ADDRESS_1 0x68
-#define ICM20948_WHO_AM_I_VAL 0xEA
+#define ICM20948_WHO_AM_I_VAL  0xEA
 
 typedef enum {
 	ACCE_FS_2G = 0,  /*!< Accelerometer full scale range is +/- 2g */
@@ -43,6 +43,18 @@ typedef enum {
 	INTERRUPT_CLEAR_ON_STATUS_READ = 1 /*!< INT_STATUS register bits are cleared
 	                                      only by reading INT_STATUS value*/
 } icm20948_int_clear_t;
+
+typedef enum {
+	ICM20948_DLPF_0,
+	ICM20948_DLPF_1,
+	ICM20948_DLPF_2,
+	ICM20948_DLPF_3,
+	ICM20948_DLPF_4,
+	ICM20948_DLPF_5,
+	ICM20948_DLPF_6,
+	ICM20948_DLPF_7,
+	ICM20948_DLPF_OFF
+} icm20948_dlpf_t;
 
 typedef struct {
 	gpio_num_t interrupt_pin;                      /*!< GPIO connected to icm20948 INT pin       */
@@ -305,5 +317,43 @@ esp_err_t icm20948_wakeup(icm20948_handle_t sensor);
  *     - ESP_FAIL Fail
  */
 esp_err_t icm20948_set_bank(icm20948_handle_t sensor, uint8_t bank);
+
+/**
+ * @brief Enable low pass filter for gyroscope and accelerometer.
+ * true:  enable low pass filter.
+ * false: bypass low pass filter.
+ *
+ * @param sensor object handle of icm20948
+ * @param enable boolean variable whether to turn on or bypass the filter
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_enable_dlpf(icm20948_handle_t sensor, bool enable);
+
+/**
+ * @brief Configure low pass filter for accelerometer
+ *
+ * @param sensor      object handle of icm20948
+ * @param dlpf_acce   dlpf configuration for accelerometer
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_set_acce_dlpf(icm20948_handle_t sensor, icm20948_dlpf_t dlpf_acce);
+
+/**
+ * @brief Configure low pass filter for gyroscope
+ *
+ * @param sensor      object handle of icm20948
+ * @param dlpf_gyro   dlpf configuration for gyroscope
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm20948_set_gyro_dlpf(icm20948_handle_t sensor, icm20948_dlpf_t dlpf_gyro);
 
 #endif // !__ICM20948_H__
