@@ -1,3 +1,8 @@
+# This is no longer maintained
+
+I've stopped working with ESP32 and ESP-IDF. Please do no use this
+library and use something that's newer and actively maintainer.
+
 # ESP-IDF Driver for ICM20948
 
 Much of the code is take from MPU6050 component from the esp-bsp library
